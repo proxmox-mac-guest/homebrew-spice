@@ -33,7 +33,7 @@ class SpiceVdagent < Formula
   end
 
   service do
-    run ["/bin/bash", "-c", "#{opt_bin}/spice-vdagentd -s /dev/tty.com.redhat.spice.0 -S #{var}/run/spice-vdagent-sock && exec #{opt_bin}/spice-vdagent -x -S #{var}/run/spice-vdagent-sock"]
+    run ["/bin/bash", "-c", "#{opt_bin}/spice-vdagentd -s /dev/tty.com.redhat.spice.0 -S #{var}/run/spice-vdagent-sock && sleep 1 && exec #{opt_bin}/spice-vdagent -x -S #{var}/run/spice-vdagent-sock"]
     keep_alive crashed: false
     run_at_load true
     error_log_path var/"log/spice-vdagent.stderr.log"
