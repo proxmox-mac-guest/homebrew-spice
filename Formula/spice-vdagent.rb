@@ -5,7 +5,6 @@ class SpiceVdagent < Formula
   sha256 "1898290b283de9f1c4d2dfd9e785f85d9170b6e44ba7b9e3ba8cdd340279399c"
   license "GPL-3.0-or-later"
 
-  depends_on macos: ">= :high_sierra"
   depends_on arch: :x86_64
 
   bottle do
@@ -16,7 +15,9 @@ class SpiceVdagent < Formula
   def install
     bin.install "spice-vdagentd"
     bin.install "spice-vdagent"
+  end
 
+  def post_install
     agent_plist = prefix/"com.redhat.spice.vdagent.plist"
     agent_plist.write <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
