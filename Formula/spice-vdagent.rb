@@ -5,16 +5,26 @@ class SpiceVdagent < Formula
   sha256 "1898290b283de9f1c4d2dfd9e785f85d9170b6e44ba7b9e3ba8cdd340279399c"
   license "GPL-3.0-or-later"
 
+  depends_on "glib" => :build
+  depends_on "pkg-config" => :build
   depends_on arch: :x86_64
 
   bottle do
     root_url "https://github.com/proxmox-mac-guest/spice-vdagent/releases/download/spice-vdagent-0.22.1"
-    sha256 cellar: :any_skip_relocation, sequoia_x86_64: "a7ef6a8ff5b45df8e5cfa5ecd60e66149c6d6e714249aeb8d91d1df44d542701"
+    sha256 cellar: :any_skip_relocation, sequoia: "a7ef6a8ff5b45df8e5cfa5ecd60e66149c6d6e714249aeb8d91d1df44d542701"
   end
 
   def install
-    bin.install "spice-vdagentd"
-    bin.install "spice-vdagent"
+    system "xcodebuild", "archive",
+           "-scheme", "vd_agent",
+           "-archivePath", "vd_agent.xcarchive",
+           "ARCHS=x86_64",
+           "VALID_ARCHS=x86_64",
+           "ONLY_ACTIVE_ARCH=NO",
+           "MACOSX_DEPLOYMENT_TARGET=10.13"
+
+    bin.install "vd_agent.xcarchive/Products/usr/local/bin/spice-vdagentd"
+    bin.install "vd_agent.xcarchive/Products/usr/local/bin/spice-vdagent"
   end
 
   def post_install
