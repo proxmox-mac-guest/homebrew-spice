@@ -28,6 +28,41 @@ class SpiceVdagent < Formula
   end
 
   def post_install
+    (var/"run").mkpath
+    (var/"log").mkpath
+
+    daemon_plist = prefix/"com.redhat.spice.vdagentd.plist"
+    daemon_plist.write <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>KeepAlive</key>
+        <dict>
+          <key>Crashed</key>
+          <false/>
+        </dict>
+        <key>Label</key>
+        <string>com.redhat.spice.vdagentd</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>#{opt_bin}/spice-vdagentd</string>
+          <string>-x</string>
+          <string>-s</string>
+          <string>/dev/tty.com.redhat.spice.0</string>
+          <string>-S</string>
+          <string>#{var}/run/spice-vdagent-sock</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>StandardErrorPath</key>
+        <string>#{var}/log/spice-vdagentd.log</string>
+        <key>StandardOutPath</key>
+        <string>#{var}/log/spice-vdagentd.log</string>
+      </dict>
+      </plist>
+    XML
+
     agent_plist = prefix/"com.redhat.spice.vdagent.plist"
     agent_plist.write <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
@@ -46,37 +81,37 @@ class SpiceVdagent < Formula
           <string>#{opt_bin}/spice-vdagent</string>
           <string>-x</string>
           <string>-S</string>
-          <string>/var/run/spice-vdagent-sock</string>
+          <string>#{var}/run/spice-vdagent-sock</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
+        <key>StandardErrorPath</key>
+        <string>#{var}/log/spice-vdagent.log</string>
+        <key>StandardOutPath</key>
+        <string>#{var}/log/spice-vdagent.log</string>
       </dict>
       </plist>
     XML
-  end
 
-  service do
-    run [opt_bin/"spice-vdagentd", "-x", "-s", "/dev/tty.com.redhat.spice.0", "-S", "/var/run/spice-vdagent-sock"]
-    keep_alive crashed: false
-    run_at_load true
-    error_log_path "/var/log/spice-vdagentd.stderr.log"
-    log_path "/var/log/spice-vdagentd.stdout.log"
+    user_agents_dir = File.expand_path("~/Library/LaunchAgents")
+    mkdir_p user_agents_dir
+    cp daemon_plist, user_agents_dir
+    cp agent_plist, user_agents_dir
+
+    system "sh", "-c", "launchctl unload #{user_agents_dir}/com.redhat.spice.vdagentd.plist 2>/dev/null || true"
+    system "sh", "-c", "launchctl unload #{user_agents_dir}/com.redhat.spice.vdagent.plist 2>/dev/null || true"
+    system "launchctl", "load", "-w", "#{user_agents_dir}/com.redhat.spice.vdagentd.plist"
+    system "launchctl", "load", "-w", "#{user_agents_dir}/com.redhat.spice.vdagent.plist"
   end
 
   def caveats
     <<~EOS
-      The spice-vdagentd daemon has been installed as a Homebrew service.
+      SPICE guest agent has been fully installed and started.
+      It will automatically start at login.
 
-      To start the daemon:
-        brew services start spice-vdagent
-
-      For clipboard sharing, the per-user spice-vdagent agent must also run.
-      A LaunchAgent plist has been generated at:
-        #{prefix}/com.redhat.spice.vdagent.plist
-
-      Install it with:
-        cp #{prefix}/com.redhat.spice.vdagent.plist ~/Library/LaunchAgents/
-        launchctl load ~/Library/LaunchAgents/com.redhat.spice.vdagent.plist
+      Logs are available at:
+        #{var}/log/spice-vdagentd.log
+        #{var}/log/spice-vdagent.log
 
       Ensure your Proxmox VM has a VirtIO serial port with
       com.redhat.spice.0 port (auto-configured with SPICE display).
