@@ -11,7 +11,7 @@ class SpiceVdagent < Formula
 
   bottle do
     root_url "https://github.com/proxmox-mac-guest/spice-vdagent/releases/download/spice-vdagent-0.22.1"
-    sha256 cellar: :any_skip_relocation, sequoia: "a7ef6a8ff5b45df8e5cfa5ecd60e66149c6d6e714249aeb8d91d1df44d542701"
+    sha256 cellar: :any_skip_relocation, sequoia: "dbabb17efd34db6286f92b1f613506df68fbb916e02b77d913bdd055ff94f3b7"
   end
 
   def install
