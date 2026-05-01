@@ -32,6 +32,7 @@ class SpiceVdagent < Formula
     (var/"log").mkpath
 
     daemon_plist = prefix/"com.redhat.spice.vdagentd.plist"
+    daemon_plist.delete if daemon_plist.exist?
     daemon_plist.write <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -64,6 +65,7 @@ class SpiceVdagent < Formula
     XML
 
     agent_plist = prefix/"com.redhat.spice.vdagent.plist"
+    agent_plist.delete if agent_plist.exist?
     agent_plist.write <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
