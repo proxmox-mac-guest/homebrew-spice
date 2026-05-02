@@ -17,3 +17,49 @@ class SpiceVdagent < Formula
     sha256 cellar: :any_skip_relocation, sonoma: "187eade16133b87044b029a8c1a9c2461d643a82248c0da4c9b843fd6dd46c6d"
     sha256 cellar: :any_skip_relocation, tahoe: "9c255004c8ee3f6f931f1831635f959fc7da00fb560f1dc517fcd08bde54d349"
   end
+
+  def install
+    arch = Hardware::CPU.arm? ? "arm64" : "x86_64"
+    system "xcodebuild", "archive",
+           "-scheme", "vd_agent",
+           "-archivePath", "vd_agent.xcarchive",
+           "ARCHS=#{arch}",
+           "VALID_ARCHS=#{arch}",
+           "ONLY_ACTIVE_ARCH=NO",
+           "MACOSX_DEPLOYMENT_TARGET=10.13"
+
+    bin.install "vd_agent.xcarchive/Products/usr/local/bin/spice-vdagentd"
+    bin.install "vd_agent.xcarchive/Products/usr/local/bin/spice-vdagent"
+  end
+
+  def post_install
+    (var/"run").mkpath
+    (var/"log").mkpath
+  end
+
+  service do
+    run ["/bin/bash", "-c", "#{opt_bin}/spice-vdagentd -s /dev/tty.com.redhat.spice.0 -S #{var}/run/spice-vdagent-sock && sleep 1 && exec #{opt_bin}/spice-vdagent -x -S #{var}/run/spice-vdagent-sock"]
+    keep_alive crashed: false
+    run_at_load true
+    error_log_path var/"log/spice-vdagent.stderr.log"
+    log_path var/"log/spice-vdagent.stdout.log"
+  end
+
+  def caveats
+    <<~EOS
+      SPICE guest agent has been fully installed.
+
+      To start the agent and enable clipboard sharing, run:
+        brew services start spice-vdagent
+
+      (Do not use sudo. It must run as your user to access the clipboard.)
+
+      Ensure your Proxmox VM has a VirtIO serial port with
+      com.redhat.spice.0 port (auto-configured with SPICE display).
+    EOS
+  end
+
+  test do
+    assert_match "spice-vdagentd", shell_output("#{bin}/spice-vdagentd --help 2>&1", 1)
+  end
+end
