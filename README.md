@@ -1,6 +1,8 @@
 # proxmox-mac-guest/spice
 
-Homebrew tap for SPICE guest agent tools on Intel macOS (Proxmox guests).
+Homebrew tap for SPICE guest agent tools on macOS (Proxmox guests).
+
+Supports Intel (x86_64) and Apple Silicon (arm64) on macOS 14 (Sonoma), 15 (Sequoia), and 26 (Tahoe).
 
 ## Install
 
